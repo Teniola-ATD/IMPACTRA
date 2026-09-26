@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors'); // 1. Require cors
 const path = require('path');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
@@ -10,6 +11,9 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
+// Enable CORS for all cross-origin requests
+app.use(cors()); // 2. Enable cors middleware
 
 // Body Parser Middleware
 app.use(express.json());
