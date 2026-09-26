@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OutcomeHub - NGO & Volunteer Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>OutcomeHub Platform</h1>
+      <p>Empowering NGOs and Volunteers</p>
+    </header>
+
+    <!-- 1. AUTHENTICATION / REGISTRATION SECTION -->
+    <section class="card-grid">
+      <div class="card">
+        <h2>Register Account</h2>
+        <form id="registerForm">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="regName" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="regEmail" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="regPassword" required>
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="regRole" onchange="toggleRoleFields(this.value)">
+              <option value="volunteer">Volunteer</option>
+              <option value="ngo_admin">NGO Admin</option>
+            </select>
+          </div>
+
+          <!-- NGO-specific fields -->
+          <div id="ngoFields" class="hidden">
+            <div class="form-group">
+              <label>Organization Mission</label>
+              <textarea id="regMission"></textarea>
+            </div>
+          </div>
+
+          <!-- Volunteer-specific fields -->
+          <div id="volunteerFields">
+            <div class="form-group">
+              <label>Skills (comma separated)</label>
+              <input type="text" id="regSkills" placeholder="Logistics, Sanitation">
+            </div>
+            <div class="form-group">
+              <label>Availability</label>
+              <input type="text" id="regAvailability" placeholder="Weekends, 10 hrs/wk">
+            </div>
+          </div>
+
+          <button type="submit">Create Account</button>
+        </form>
+      </div>
+
+      <!-- 2. CREATE OPPORTUNITY FORM (NGO ADMIN) -->
+      <div class="card">
+        <h2>Post Opportunity (NGO)</h2>
+        <form id="opportunityForm">
+          <div class="form-group">
+            <label>NGO User ID</label>
+            <input type="text" id="oppNgoId" placeholder="MongoDB User ObjectId" required>
+          </div>
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="oppTitle" required>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="oppDescription" required></textarea>
+          </div>
+          <div class="form-group">
+            <label>Location</label>
+            <input type="text" id="oppLocation" required>
+          </div>
+          <div class="form-group">
+            <label>Date & Time</label>
+            <input type="datetime-local" id="oppDateTime" required>
+          </div>
+          <div class="form-group">
+            <label>Volunteers Needed</label>
+            <input type="number" id="oppVolunteersNeeded" required>
+          </div>
+          <button type="submit">Publish Opportunity</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 3. DASHBOARD METRICS SECTION -->
+    <section class="card-grid">
+      <div class="card metric-card">
+        <h3>Total Programs</h3>
+        <span id="metricPrograms">0</span>
+      </div>
+      <div class="card metric-card">
+        <h3>Active Volunteers</h3>
+        <span id="metricVolunteers">0</span>
+      </div>
+      <div class="card metric-card">
+        <h3>Verified Hours Logged</h3>
+        <span id="metricHours">0</span>
+      </div>
+    </section>
+
+    <!-- 4. OPPORTUNITIES FEED & HOUR LOGGING -->
+    <section class="card-grid">
+      <div class="card">
+        <h2>Browse Opportunities</h2>
+        <button onclick="fetchOpportunities()" style="margin-bottom: 12px;">Refresh Feed</button>
+        <div id="opportunityFeed"></div>
+      </div>
+
+      <div class="card">
+        <h2>Log Volunteer Hours</h2>
+        <form id="logHoursForm">
+          <div class="form-group">
+            <label>Opportunity ID</label>
+            <input type="text" id="logOppId" required>
+          </div>
+          <div class="form-group">
+            <label>Volunteer ID</label>
+            <input type="text" id="logVolunteerId" required>
+          </div>
+          <div class="form-group">
+            <label>Hours Logged</label>
+            <input type="number" id="logHours" step="0.5" required>
+          </div>
+          <div class="form-group">
+            <label>Description / Work Done</label>
+            <textarea id="logDesc"></textarea>
+          </div>
+          <button type="submit">Submit Hours</button>
+        </form>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const API_BASE = '/api'; // Adjust to your route prefix (e.g., http://localhost:5000)
+
+    function toggleRoleFields(role) {
+      if (role === 'ngo_admin') {
+        document.getElementById('ngoFields').classList.remove('hidden');
+        document.getElementById('volunteerFields').classList.add('hidden');
+      } else {
+        document.getElementById('ngoFields').classList.add('hidden');
+        document.getElementById('volunteerFields').classList.remove('hidden');
+      }
+    }
+
+    // Auth Form Submission
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const role = document.getElementById('regRole').value;
+      const payload = {
+        name: document.getElementById('regName').value,
+        email: document.getElementById('regEmail').value,
+        password: document.getElementById('regPassword').value,
+        role: role,
+        organization_mission: role === 'ngo_admin' ? document.getElementById('regMission').value : undefined,
+        volunteer_skills: role === 'volunteer' ? document.getElementById('regSkills').value.split(',').map(s => s.trim()) : undefined,
+        volunteer_availability: role === 'volunteer' ? document.getElementById('regAvailability').value : undefined
+      };
+
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+    });
+
+    // Create Opportunity
+    document.getElementById('opportunityForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        ngo_id: document.getElementById('oppNgoId').value,
+        title: document.getElementById('oppTitle').value,
+        description: document.getElementById('oppDescription').value,
+        location: document.getElementById('oppLocation').value,
+        date_time: document.getElementById('oppDateTime').value,
+        volunteers_needed: Number(document.getElementById('oppVolunteersNeeded').value)
+      };
+
+      const res = await fetch(`${API_BASE}/opportunities`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      alert(data.success ? 'Opportunity Created!' : data.error);
+    });
+
+    // Fetch Opportunities
+    async function fetchOpportunities() {
+      const res = await fetch(`${API_BASE}/opportunities`);
+      const data = await res.json();
+      const container = document.getElementById('opportunityFeed');
+      container.innerHTML = '';
+      
+      if (data.data) {
+        data.data.forEach(item => {
+          container.innerHTML += `
+            <div class="feed-item">
+              <h4>${item.title}</h4>
+              <p>${item.description}</p>
+              <small>📍 ${item.location} | Needed: ${item.volunteers_needed}</small>
+            </div>
+          `;
+        });
+      }
+    }
+
+    // Log Hours Form
+    document.getElementById('logHoursForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        opportunity_id: document.getElementById('logOppId').value,
+        volunteer_id: document.getElementById('logVolunteerId').value,
+        hours_logged: Number(document.getElementById('logHours').value),
+        description: document.getElementById('logDesc').value
+      };
+
+      const res = await fetch(`${API_BASE}/hours/log`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+    });
+
+    // Initial feed fetch
+    fetchOpportunities();
+  </script>
+</body>
+</html>
