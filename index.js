@@ -26,6 +26,7 @@ app.use(express.static(path.join(__dirname, 'Project')));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/hours', require('./routes/hourRoutes'));
 app.use('/api/opportunities', require('./routes/opportunityRoutes'));
+app.use('/api/applications', require('./routes/applicationRoutes')); // Added Application Route
 
 // Fallback to serve index.html for any root frontend request
 app.get('/', (req, res) => {
