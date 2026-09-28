@@ -1,7 +1,7 @@
 {
-  "name": "outcomehub-backend",
+  "name": "IMPACTRA-backend",
   "version": "1.0.0",
-  "description": "OutcomeHub Backend API",
+  "description": "IMPACTRA Backend API",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

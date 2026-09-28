@@ -26,7 +26,7 @@ app.use(express.static(path.join(__dirname, 'Project')));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/hours', require('./routes/hourRoutes'));
 app.use('/api/opportunities', require('./routes/opportunityRoutes'));
-app.use('/api/applications', require('./routes/applicationRoutes')); // Added Application Route
+app.use('/api/applications', require('./routes/applicationRoutes')); // Application Route
 
 // Fallback to serve index.html for any root frontend request
 app.get('/', (req, res) => {
@@ -36,5 +36,5 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  console.log(`IMPACTRA Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
