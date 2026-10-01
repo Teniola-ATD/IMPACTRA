@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require('cors'); // 1. Require cors
+const cors = require('cors'); 
 const path = require('path');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
@@ -13,22 +13,22 @@ connectDB();
 const app = express();
 
 // Enable CORS for all cross-origin requests
-app.use(cors()); // 2. Enable cors middleware
+app.use(cors()); 
 
 // Body Parser Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve static frontend files from your "Project" folder
+// Serve static frontend files from the "Project" directory
 app.use(express.static(path.join(__dirname, 'Project')));
 
 // API Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/hours', require('./routes/hourRoutes'));
 app.use('/api/opportunities', require('./routes/opportunityRoutes'));
-app.use('/api/applications', require('./routes/applicationRoutes')); // Application Route
+app.use('/api/applications', require('./routes/applicationRoutes')); 
 
-// Fallback to serve index.html for any root frontend request
+// Serve index.html from inside the "Project" directory for the root URL
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'Project', 'index.html'));
 });
